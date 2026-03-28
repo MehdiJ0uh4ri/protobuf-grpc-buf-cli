@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-sso-config
+  namespace: sso
+data:
+  # You can override individual values without rebuilding the image
+  UPSTREAM_HOST: "upstream-app-svc"
+  UPSTREAM_PORT: "3000"
+  AUTH_HOST: "auth-backend-svc"
+  AUTH_PORT: "8081"

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sso-nginx-svc
+  namespace: sso
+spec:
+  selector:
+    app: sso-nginx
+  ports:
+  - name: http
+    port: 80          # This is the 'external' port for the cluster
+    targetPort: 8081  # THIS must match 'listen 8081' in nginx.conf
+  - name: metrics
+    port: 8080        # This is the 'external' port for Prometheus
+    targetPort: 8080  # THIS must match 'listen 8080' in nginx.conf
+  type: ClusterIP

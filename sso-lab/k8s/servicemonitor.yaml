@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sso-nginx-monitor
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: sso-nginx
+  namespaceSelector:
+    matchNames:
+    - sso
+  endpoints:
+  - port: metrics
+    path: /nginx_status
+    interval: 15s

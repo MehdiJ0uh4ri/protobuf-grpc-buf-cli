@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sso-nginx
+  namespace: sso
+  labels:
+    app: sso-nginx
+    version: v1
+spec:
+  replicas: 3                     # 3 pods for HA
+  selector:
+    matchLabels:
+      app: sso-nginx
+  strategy:
+    type: RollingUpdate           # zero-downtime deploys
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: sso-nginx
+        version: v1
+    spec:
+      containers:
+      - name: nginx
+        image: sso-nginx:v1
+        imagePullPolicy: Never    # use minikube's local image
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 8081
+          name: metrics
+        envFrom:
+        - configMapRef:
+            name: nginx-sso-config
+        # Liveness: restart if nginx hangs
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        # Readiness: only send traffic when nginx is ready
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "64Mi"
+          limits:
+            cpu: "500m"
+            memory: "128Mi"
+        # Security context — read-only filesystem
+        securityContext:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1001    # Add this line
+          runAsGroup: 1001   # Add this line
+          
