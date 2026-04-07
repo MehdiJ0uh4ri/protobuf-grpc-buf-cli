@@ -1,0 +1,18 @@
+version: v2
+
+# The module tells Buf which directories contain proto files.
+modules:
+  - path: proto
+
+# Lint rules — enforce style and naming conventions.
+lint:
+  use:
+    - DEFAULT        # opinionated but widely-adopted Buf defaults
+
+# Breaking change detection rules.
+# FILE  = checks field-level wire compatibility (safe default for most teams)
+# WIRE  = stricter: also checks json_name, default values, etc.
+# WIRE_JSON = strictest: catches anything that breaks JSON serialization too
+breaking:
+  use:
+    - FILE
