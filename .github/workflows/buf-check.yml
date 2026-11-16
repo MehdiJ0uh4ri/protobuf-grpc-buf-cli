@@ -1,0 +1,49 @@
+name: Buf Proto Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'proto/**'        # Only run when proto files change
+      - 'buf.yaml'
+
+jobs:
+  buf:
+    name: Lint & Breaking Change Check
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout with full history so buf can diff against main
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # IMPORTANT: shallow clone breaks git-based diffing
+
+      # 2. Install Buf CLI (official action)
+      - name: Setup Buf
+        uses: bufbuild/buf-action@v1
+        with:
+          version: '1.34.0'     # Pin the version — never use 'latest' in CI
+
+      # 3. Validate syntax
+      - name: Build
+        run: buf build
+
+      # 4. Enforce style
+      - name: Lint
+        run: buf lint
+
+      # 5. Check for breaking changes vs main branch
+      #    On PRs: compares PR head vs main
+      #    On push to main: compares this commit vs previous commit
+      - name: Breaking change detection
+        run: |
+          buf breaking \
+            --against '.git#branch=origin/main' \
+            --error-format github-actions
+
+      # Note: --error-format github-actions annotates the PR diff inline
+      # instead of just printing to stdout — engineers see the error
+      # right on the changed line in the GitHub PR review UI.
